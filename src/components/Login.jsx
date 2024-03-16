@@ -3,6 +3,7 @@ import { loginFields } from "../constants/formFields";
 import FormAction from "./FormAction";
 import FormExtra from "./FormExtra";
 import Input from "./Input";
+import { Navigate, useNavigate } from 'react-router-dom';
 
 const fields = loginFields;
 let fieldsState = {};
@@ -10,7 +11,7 @@ fields.forEach(field => fieldsState[field.id] = '');
 
 export default function Login() {
     const [loginState, setLoginState] = useState(fieldsState);
-
+    const navigator = useNavigate()
     const handleChange = (e) => {
         const { id, value } = e.target;
         setLoginState(prevState => ({
@@ -21,12 +22,12 @@ export default function Login() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
-        authenticateUser();
+        authenticateUser(loginState);
+        setLoginState(fieldsState)
     }
 
     //Handle Login API Integration here
-    const authenticateUser = () => {
+    const authenticateUser = (data) => {
         const endpoint = `${import.meta.env.VITE_BASE_URL}users/login`;
         fetch(endpoint,
             {
@@ -34,11 +35,19 @@ export default function Login() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(loginState)
+                body: JSON.stringify(data)
             }).then(response => response.json())
             .then(data => {
-                //API Success from LoginRadius Login API
                 console.log(data);
+                //API Success from LoginRadius Login API
+                if (data.statusCode >= 200) {
+                    navigator("/", {
+                        replace: true
+                    })
+                }
+                else (
+                    alert("faild")
+                )
             })
             .catch(error => console.log(error))
     }
